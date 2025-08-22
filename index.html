@@ -1,0 +1,185 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Futsal UPO 25/26</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(to right, #004d00, #009933);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #002200;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 3px solid #00cc44;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        section {
+            padding: 20px;
+        }
+        h2 {
+            border-bottom: 2px solid #00cc44;
+            padding-bottom: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background-color: #003300;
+        }
+        th, td {
+            border: 1px solid #00cc44;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #006600;
+        }
+        input[type="number"] {
+            width: 60px;
+            padding: 5px;
+            background-color: #e6ffe6;
+            border: none;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #00cc44;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            margin-top: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #009933;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Futsal UPO 25/26</h1>
+    </header>
+    <section>
+        <h2>Clasificación</h2>
+        <table id="standings">
+            <thead>
+                <tr>
+                    <th>Equipo</th>
+                    <th>PG</th>
+                    <th>PE</th>
+                    <th>PP</th>
+                    <th>GF</th>
+                    <th>GC</th>
+                    <th>DG</th>
+                    <th>Puntos</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr id="Blancos">
+                    <td>Blancos</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+                </tr>
+                <tr id="Oscuros">
+                    <td>Oscuros</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+    <section>
+        <h2>Calendario de Partidos</h2>
+        <table id="calendar">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Blancos</th>
+                    <th>Oscuros</th>
+                    <th>Actualizar</th>
+                </tr>
+            </thead>
+            <tbody id="calendar-body">
+            </tbody>
+        </table>
+    </section>
+    <script>
+        function generateCalendar() {
+            const startDate = new Date("2025-09-01");
+            const endDate = new Date("2026-06-29");
+            const calendarBody = document.getElementById("calendar-body");
+
+            while (startDate <= endDate) {
+                if (startDate.getDay() === 1) {
+                    const row = document.createElement("tr");
+                    const dateStr = startDate.toISOString().split('T')[0];
+                    row.innerHTML = `
+                        <td>${dateStr}</td>
+                        <td>20:30</td>
+                        <td><input type="number" min="0" id="blancos-${dateStr}"></td>
+                        <td><input type="number" min="0" id="oscuros-${dateStr}"></td>
+                        <td><button onclick="updateResult('${dateStr}')">Actualizar</button></td>
+                    `;
+                    calendarBody.appendChild(row);
+                }
+                startDate.setDate(startDate.getDate() + 1);
+            }
+        }
+
+        const stats = {
+            Blancos: { PG: 0, PE: 0, PP: 0, GF: 0, GC: 0 },
+            Oscuros: { PG: 0, PE: 0, PP: 0, GF: 0, GC: 0 }
+        };
+
+        function updateResult(date) {
+            const blancosGoals = parseInt(document.getElementById(`blancos-${date}`).value) || 0;
+            const oscurosGoals = parseInt(document.getElementById(`oscuros-${date}`).value) || 0;
+
+            if (blancosGoals === oscurosGoals) {
+                stats.Blancos.PE += 1;
+                stats.Oscuros.PE += 1;
+            } else if (blancosGoals > oscurosGoals) {
+                stats.Blancos.PG += 1;
+                stats.Oscuros.PP += 1;
+            } else {
+                stats.Oscuros.PG += 1;
+                stats.Blancos.PP += 1;
+            }
+
+            stats.Blancos.GF += blancosGoals;
+            stats.Blancos.GC += oscurosGoals;
+            stats.Oscuros.GF += oscurosGoals;
+            stats.Oscuros.GC += blancosGoals;
+
+            updateStandings();
+        }
+
+        function updateStandings() {
+            for (const team of ["Blancos", "Oscuros"]) {
+                const row = document.getElementById(team);
+                const s = stats[team];
+                const DG = s.GF - s.GC;
+                const Pts = s.PG * 3 + s.PE;
+                row.innerHTML = `
+                    <td>${team}</td>
+                    <td>${s.PG}</td>
+                    <td>${s.PE}</td>
+                    <td>${s.PP}</td>
+                    <td>${s.GF}</td>
+                    <td>${s.GC}</td>
+                    <td>${DG}</td>
+                    <td>${Pts}</td>
+                `;
+            }
+        }
+
+        generateCalendar();
+    </script>
+</body>
+</html>
